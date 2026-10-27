@@ -55,9 +55,16 @@ export const generate = new Command()
 				process.exit(1);
 			}
 
+			const targetDir = path.resolve(
+				options.output || config.resolvedPaths.forms,
+			);
 			const packageConfig =
 				packageConfigs[options.form as keyof typeof packageConfigs];
-			const zodSchemas = parseZodSchemasFromFile(config, options.schema);
+			const zodSchemas = parseZodSchemasFromFile(
+				config,
+				options.schema,
+				targetDir,
+			);
 
 			if (Object.keys(zodSchemas).length === 0) {
 				logger.error("No Zod schemas found in the specified file.");
@@ -100,10 +107,8 @@ export const generate = new Command()
 				).name;
 
 			const spinner = ora(
-				`Generating form for schema: ${selectedSchema} at ${config.resolvedPaths.forms}/${name}.tsx\n`,
+				`Generating form for schema: ${selectedSchema} at ${path.join(targetDir, `${name}.tsx`)}\n`,
 			).start();
-
-			const targetDir = options.output || config.resolvedPaths.forms;
 
 			if (!existsSync(targetDir)) {
 				await fs.mkdir(targetDir, { recursive: true });

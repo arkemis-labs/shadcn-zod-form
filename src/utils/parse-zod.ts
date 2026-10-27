@@ -18,6 +18,7 @@ export type ParsedSchema = {
 export function parseZodSchemasFromFile(
 	config: Config,
 	filePath: string,
+	outputDir = config.resolvedPaths.forms,
 ): Record<string, ParsedSchema> {
 	const project = new Project();
 	const sourceFile = project.addSourceFileAtPath(filePath);
@@ -30,7 +31,7 @@ export function parseZodSchemasFromFile(
 			const schemaCode = initializer.getText();
 			schemas[schemaName] = {
 				schema: evaluateZodSchema(schemaCode, filePath),
-				import: buildImportString(config, sourceFile, declaration, filePath),
+				import: buildImportString(sourceFile, declaration, filePath, outputDir),
 			};
 		}
 	}
@@ -39,17 +40,17 @@ export function parseZodSchemasFromFile(
 }
 
 function buildImportString(
-	config: Config,
 	sourceFile: SourceFile,
 	declaration: VariableDeclaration,
 	filePath: string,
+	outputDir: string,
 ) {
 	const isDefaultExport = sourceFile
 		.getExportedDeclarations()
 		.get("default")
 		?.some((d) => d === declaration);
 
-	let importPath = path.relative(config.resolvedPaths.forms, filePath);
+	let importPath = path.relative(outputDir, filePath);
 	importPath = importPath.replace(/\.(ts|tsx|js|jsx)$/, "");
 	importPath = importPath.replace(/\\/g, "/");
 
